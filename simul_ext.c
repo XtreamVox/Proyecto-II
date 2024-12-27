@@ -1,0 +1,3 @@
+/*
+Simulador de ficheros tipo Linux
+*/
