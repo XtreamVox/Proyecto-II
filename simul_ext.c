@@ -144,7 +144,7 @@ int main()
          //Si el comando es salir se habrÃ¡n escrito todos los metadatos
          //faltan los datos y cerrar
          if (strcmp(orden,"salir")==0){
-            GrabarDatos(&memdatos,fent);
+            GrabarDatos(memdatos,fent);
             fclose(fent);
             return 0;
          }
