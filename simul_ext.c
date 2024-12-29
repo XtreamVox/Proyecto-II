@@ -104,6 +104,20 @@ int main()
                 printf("Error imprimiendo el archivo\n");
             }
         }
+	else if (strcmp(orden, "copy") == 0)
+        {
+            printf("Ingresa el nombre del archivo a donde se quiera copiar: ");
+            fgets(argumento1, LONGITUD_COMANDO, stdin);
+            eliminarSaltoLinea(argumento1); // Eliminar el salto de línea
+            printf("Ingresa el nombre del archivo del que se quiere copiar: ");
+            fgets(argumento2, LONGITUD_COMANDO, stdin);
+            eliminarSaltoLinea(argumento2); // Eliminar el salto de línea
+
+            if (Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent))
+            {
+                printf("Error copiando el archivo\n");
+            }
+        }
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
@@ -264,5 +278,89 @@ int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *mem
         printf("%.*s", SIZE_BLOQUE, memdatos[inodo->i_nbloque[i] - PRIM_BLOQUE_DATOS].dato);
     }
     printf("\n");
+    return 0;
+}
+
+int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, EXT_DATOS *memdatos, char *nombreorigen, char *nombredestino, FILE *fich)
+{
+    EXT_ENTRADA_DIR *origen = BuscaFich(directorio, inodos, nombreorigen);
+    if (origen == NULL)
+    {
+        printf("Error: Archivo origen no encontrado.\n");
+        return -1;
+    }
+
+    // Verificar si el archivo destino ya existe
+    EXT_ENTRADA_DIR *destino = BuscaFich(directorio, inodos, nombredestino);
+    if (destino == NULL)
+    {
+        // Si no existe, crear una nueva entrada en el directorio
+        for (int i = 0; i < MAX_FICHEROS; i++)
+        {
+            if (directorio[i].dir_inodo == NULL_INODO)
+            {
+                destino = &directorio[i];
+                strncpy(destino->dir_nfich, nombredestino, LEN_NFICH - 1);
+                destino->dir_nfich[LEN_NFICH - 1] = '\0';
+
+                // Asignar un inodo libre
+                for (int j = 0; j < MAX_INODOS; j++)
+                {
+                    if (ext_bytemaps->bmap_inodos[j] == 0)
+                    {
+                        destino->dir_inodo = j;
+                        ext_bytemaps->bmap_inodos[j] = 1; // Marcar inodo como ocupado
+                        break;
+                    }
+                }
+                break;
+            }
+        }
+
+        if (destino == NULL)
+        {
+            printf("Error: No hay espacio en el directorio para el archivo destino.\n");
+            return -1;
+        }
+    }
+    else
+    {
+        // Si el archivo ya existe, limpiar su contenido actual
+        EXT_SIMPLE_INODE *inodo_destino = &inodos->blq_inodos[destino->dir_inodo];
+        for (int i = 0; i < MAX_NUMS_BLOQUE_INODO && inodo_destino->i_nbloque[i] != NULL_BLOQUE; i++)
+        {
+            int bloque = inodo_destino->i_nbloque[i];
+            ext_bytemaps->bmap_bloques[bloque] = 0; // Marcar bloque como libre
+            memset(memdatos[bloque - PRIM_BLOQUE_DATOS].dato, 0, SIZE_BLOQUE);
+            inodo_destino->i_nbloque[i] = NULL_BLOQUE;
+        }
+        inodo_destino->size_fichero = 0;
+    }
+
+    // Copiar datos desde el origen al destino
+    EXT_SIMPLE_INODE *inodo_origen = &inodos->blq_inodos[origen->dir_inodo];
+    EXT_SIMPLE_INODE *inodo_destino = &inodos->blq_inodos[destino->dir_inodo];
+    inodo_destino->size_fichero = inodo_origen->size_fichero;
+
+    for (int i = 0; i < MAX_NUMS_BLOQUE_INODO; i++)
+    {
+        if (inodo_origen->i_nbloque[i] == NULL_BLOQUE)
+            break;
+
+        for (int j = PRIM_BLOQUE_DATOS; j < MAX_BLOQUES_PARTICION; j++)
+        {
+            if (ext_bytemaps->bmap_bloques[j] == 0)
+            {
+                ext_bytemaps->bmap_bloques[j] = 1; // Marcar bloque como ocupado
+                inodo_destino->i_nbloque[i] = j;
+
+                memcpy(memdatos[j - PRIM_BLOQUE_DATOS].dato,
+                       memdatos[inodo_origen->i_nbloque[i] - PRIM_BLOQUE_DATOS].dato,
+                       SIZE_BLOQUE);
+                break;
+            }
+        }
+    }
+
     return 0;
 }
