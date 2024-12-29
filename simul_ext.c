@@ -79,7 +79,10 @@ int main()
         {
             Printbytemaps(&ext_bytemaps);
         } 
-         
+        else if (strcmp(orden, "info") == 0)
+        {
+            Directorio(directorio, &ext_blq_inodos);
+        }
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
@@ -163,4 +166,14 @@ void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps)
         printf("%d", ext_bytemaps->bmap_inodos[i]);
     }
     printf("\n");
+}
+
+void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup)
+{
+    printf("Inodos: %u\n", psup->s_inodes_count);
+    printf("Bloques: %u\n", psup->s_blocks_count);
+    printf("Bloques libres: %u\n", psup->s_free_blocks_count);
+    printf("Inodos libres: %u\n", psup->s_free_inodes_count);
+    printf("Primer bloque de datos: %u\n", psup->s_first_data_block);
+    printf("Tamaño del bloque: %u\n", psup->s_block_size);
 }
