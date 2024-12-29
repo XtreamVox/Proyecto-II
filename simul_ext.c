@@ -64,12 +64,11 @@ int main()
 		 printf (">> ");
 		 fflush(stdin);
 		 fgets(comando, LONGITUD_COMANDO, stdin);
-		 } while (ComprobarComando(comando,orden,argumento1,argumento2) !=0);
-
          if (ComprobarComando(comando, orden, argumento1, argumento2) != 0){
             printf("Comando desconocido\n");
             continue;
-        }
+         }
+		 } while (ComprobarComando(comando,orden,argumento1,argumento2) !=0);
 
 	     if (strcmp(orden,"dir")==0) 
         {
