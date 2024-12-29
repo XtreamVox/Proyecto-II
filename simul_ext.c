@@ -107,3 +107,16 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
 
     return -1; // Comando desconocido
 }
+
+void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos)
+{
+    for (int i = 0; i < MAX_FICHEROS; i++)
+    {
+        if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, ".") != 0)
+        {
+            // EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
+            printf("Nombre: %s, Inodo: %u, Tamanyo: %u\n", directorio[i].dir_nfich, directorio[i].dir_inodo, inodos->blq_inodos[directorio[i].dir_inodo].size_fichero);
+            
+        }
+    }
+}
