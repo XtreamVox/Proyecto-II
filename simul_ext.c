@@ -85,3 +85,25 @@ int main()
          }
      }
 }
+
+int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2)
+{
+    // Inicializa las cadenas
+    memset(orden, 0, LONGITUD_COMANDO);
+    memset(argumento1, 0, LONGITUD_COMANDO);
+    memset(argumento2, 0, LONGITUD_COMANDO);
+
+    // Extrae el comando y argumentos
+    sscanf(strcomando, "%s %s %s", orden, argumento1, argumento2);
+
+    // Lista de comandos válidos
+    if (strcmp(orden, "dir") == 0 || strcmp(orden, "rename") == 0 ||
+        strcmp(orden, "remove") == 0 || strcmp(orden, "copy") == 0 ||
+        strcmp(orden, "salir") == 0 || strcmp(orden, "info") == 0 ||
+        strcmp(orden, "bytemaps") == 0 || strcmp(orden, "imprimir") == 0)
+    {
+        return 0; // Comando válido
+    }
+
+    return -1; // Comando desconocido
+}
