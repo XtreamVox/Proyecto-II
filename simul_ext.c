@@ -41,17 +41,16 @@ int main()
      EXT_ENTRADA_DIR directorio[MAX_FICHEROS];
      EXT_DATOS memdatos[MAX_BLOQUES_DATOS];
      EXT_DATOS datosfich[MAX_BLOQUES_PARTICION];
-     int entradadir;
-     int grabardatos;
-     FILE *fent;
-     
-     // Lectura del fichero completo de una sola vez
-     ...
-     
-     fent = fopen("particion.bin","r+b");
-     fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);    
-     
-     
+    int grabardatos = 0;
+    FILE *fent = fopen("particion.bin", "r+b");
+    if (!fent)
+    {
+        perror("Error abriendo el archivo de partición");
+        return 1;
+    }
+
+    // Lectura del fichero y guardado de su contenido
+     fread(&datosfich, SIZE_BLOQUE, MAX_BLOQUES_PARTICION, fent);        
      memcpy(&ext_superblock,(EXT_SIMPLE_SUPERBLOCK *)&datosfich[0], SIZE_BLOQUE);
      memcpy(&directorio,(EXT_ENTRADA_DIR *)&datosfich[3], SIZE_BLOQUE);
      memcpy(&ext_bytemaps,(EXT_BLQ_INODOS *)&datosfich[1], SIZE_BLOQUE);
