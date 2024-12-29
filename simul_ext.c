@@ -8,7 +8,7 @@
 void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps);
 int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argumento2);
 void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup);
-int BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, 
+EXT_ENTRADA_DIR *BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, 
               char *nombre);
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos);
 int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, 
@@ -104,7 +104,7 @@ int main()
                 printf("Error imprimiendo el archivo\n");
             }
         }
-	else if (strcmp(orden, "copy") == 0)
+        else if (strcmp(orden, "copy") == 0)
         {
             printf("Ingresa el nombre del archivo a donde se quiera copiar: ");
             fgets(argumento1, LONGITUD_COMANDO, stdin);
@@ -116,6 +116,20 @@ int main()
             if (Copiar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, memdatos, argumento1, argumento2, fent))
             {
                 printf("Error copiando el archivo\n");
+            }
+        }
+        else if (strcmp(orden, "rename") == 0)
+        {
+            printf("Ingresa el nombre del archivo a renombrar: ");
+            fgets(argumento1, LONGITUD_COMANDO, stdin);
+            eliminarSaltoLinea(argumento1); // Eliminar el salto de línea
+            printf("Ingresa el nuevo nombre del archivo: ");
+            fgets(argumento2, LONGITUD_COMANDO, stdin);
+            eliminarSaltoLinea(argumento2); // Eliminar el salto de línea
+
+            if (Renombrar(directorio, &ext_blq_inodos, argumento1, argumento2))
+            {
+                printf("Error renombrando el archivo\n");
             }
         }
          // Escritura de metadatos en comandos rename, remove, copy     
@@ -365,6 +379,26 @@ int Copiar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
     return 0;
 }
 
+int Renombrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombreantiguo, char *nombrenuevo)
+{
+    for (int i = 0; i < MAX_FICHEROS; i++)
+    {
+        if (strcmp(directorio[i].dir_nfich, nombrenuevo) == 0)
+        {
+            return -1; // Nuevo nombre ya existe
+        }
+    }
+    for (int i = 0; i < MAX_FICHEROS; i++)
+    {
+        if (strcmp(directorio[i].dir_nfich, nombreantiguo) == 0)
+        {
+            strncpy(directorio[i].dir_nfich, nombrenuevo, LEN_NFICH - 1);
+            directorio[i].dir_nfich[LEN_NFICH - 1] = '\0';
+            return 0;
+        }
+    }
+    return -1; // Nombre antiguo no encontrado
+}
 
 void Grabarinodosydirectorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, FILE *fich)
 {
