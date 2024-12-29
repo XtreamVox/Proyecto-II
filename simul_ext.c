@@ -83,6 +83,17 @@ int main()
         {
             Directorio(directorio, &ext_blq_inodos);
         }
+	else if (strcmp(orden, "remove") == 0)
+        {
+            printf("Ingresa el nombre del archivo a remover: ");
+            fgets(argumento1, LONGITUD_COMANDO, stdin);
+            eliminarSaltoLinea(argumento1); // Eliminar el salto de línea
+
+            if (Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent))
+            {
+                printf("Error eliminando el archivo\n");
+            }
+        }
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
@@ -120,6 +131,15 @@ int ComprobarComando(char *strcomando, char *orden, char *argumento1, char *argu
     }
 
     return -1; // Comando desconocido
+}
+
+void eliminarSaltoLinea(char *cadena)
+{
+    size_t longitud = strlen(cadena);
+    if (longitud > 0 && cadena[longitud - 1] == '\n')
+    {
+        cadena[longitud - 1] = '\0';
+    }
 }
 
 void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos)
@@ -176,4 +196,45 @@ void LeeSuperBloque(EXT_SIMPLE_SUPERBLOCK *psup)
     printf("Inodos libres: %u\n", psup->s_free_inodes_count);
     printf("Primer bloque de datos: %u\n", psup->s_first_data_block);
     printf("Tamaño del bloque: %u\n", psup->s_block_size);
+}
+
+EXT_ENTRADA_DIR *BuscaFich(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, char *nombre)
+{
+    for (int i = 0; i < MAX_FICHEROS; i++)
+    {
+        // Asegúrate de que dir_nfich no está vacío
+        if (directorio[i].dir_nfich[0] != '\0' && strcmp(directorio[i].dir_nfich, nombre) == 0)
+        {
+            return &directorio[i];
+        }
+    }
+    return NULL; // Si no lo encuentra, retorna NULL
+}
+
+int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *ext_bytemaps, EXT_SIMPLE_SUPERBLOCK *ext_superblock, char *nombre, FILE *fich)
+{
+    EXT_ENTRADA_DIR *entrada = BuscaFich(directorio, inodos, nombre);
+    if (entrada == NULL) // Verificamos si el archivo fue encontrado
+    {
+        printf("Error: Archivo no encontrado.\n");
+        return -1;
+    }
+
+    EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[entrada->dir_inodo];
+    for (int i = 0; i < MAX_NUMS_BLOQUE_INODO && inodo->i_nbloque[i] != NULL_BLOQUE; i++)
+    {
+        ext_bytemaps->bmap_bloques[inodo->i_nbloque[i]] = 0; // Liberar el bloque
+        inodo->i_nbloque[i] = NULL_BLOQUE;
+    }
+
+    inodo->size_fichero = 0;
+    ext_bytemaps->bmap_inodos[entrada->dir_inodo] = 0; // Liberar el inodo
+
+    // Limpiar la entrada de directorio
+    memset(entrada->dir_nfich, 0, LEN_NFICH);
+    entrada->dir_inodo = NULL_INODO;
+
+    ext_superblock->s_free_blocks_count++;
+    ext_superblock->s_free_inodes_count++;
+    return 0;
 }
