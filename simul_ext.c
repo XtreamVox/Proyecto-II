@@ -114,9 +114,27 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos)
     {
         if (directorio[i].dir_inodo != NULL_INODO && strcmp(directorio[i].dir_nfich, ".") != 0)
         {
-            // EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
-            printf("Nombre: %s, Inodo: %u, Tamanyo: %u\n", directorio[i].dir_nfich, directorio[i].dir_inodo, inodos->blq_inodos[directorio[i].dir_inodo].size_fichero);
-            
+            EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[directorio[i].dir_inodo];
+            printf("Nombre: %s, Inodo: %u, Tamaño: %u, Bloques: ",
+                   directorio[i].dir_nfich,
+                   directorio[i].dir_inodo,
+                   inodo->size_fichero);
+
+            if (inodo->size_fichero > 0) // Mostrar bloques solo si el tamaño del archivo es mayor que 0
+            {
+                for (int j = 0; j < MAX_NUMS_BLOQUE_INODO; j++)
+                {
+                    if (inodo->i_nbloque[j] != NULL_BLOQUE)
+                    {
+                        printf("%d ", inodo->i_nbloque[j]);
+                    }
+                }
+            }
+            else
+            {
+                printf("Ninguno");
+            }
+            printf("\n");
         }
     }
 }
