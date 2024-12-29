@@ -83,7 +83,7 @@ int main()
         {
             Directorio(directorio, &ext_blq_inodos);
         }
-	else if (strcmp(orden, "remove") == 0)
+	    else if (strcmp(orden, "remove") == 0)
         {
             printf("Ingresa el nombre del archivo a remover: ");
             fgets(argumento1, LONGITUD_COMANDO, stdin);
@@ -92,6 +92,16 @@ int main()
             if (Borrar(directorio, &ext_blq_inodos, &ext_bytemaps, &ext_superblock, argumento1, fent))
             {
                 printf("Error eliminando el archivo\n");
+            }
+        }
+        else if (strcmp(orden, "imprimir") == 0)
+        {
+            printf("Ingresa el nombre del archivo a imprimir: ");
+            fgets(argumento1, LONGITUD_COMANDO, stdin);
+            eliminarSaltoLinea(argumento1); // Eliminar el salto de línea
+            if (Imprimir(directorio, &ext_blq_inodos, memdatos, argumento1))
+            {
+                printf("Error imprimiendo el archivo\n");
             }
         }
          // Escritura de metadatos en comandos rename, remove, copy     
@@ -236,5 +246,23 @@ int Borrar(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_BYTE_MAPS *e
 
     ext_superblock->s_free_blocks_count++;
     ext_superblock->s_free_inodes_count++;
+    return 0;
+}
+
+int Imprimir(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos, EXT_DATOS *memdatos, char *nombre)
+{
+    EXT_ENTRADA_DIR *entrada = BuscaFich(directorio, inodos, nombre);
+    if (entrada == NULL) // Verificamos si el archivo fue encontrado
+    {
+        printf("Error: Archivo no encontrado.\n");
+        return -1;
+    }
+
+    EXT_SIMPLE_INODE *inodo = &inodos->blq_inodos[entrada->dir_inodo];
+    for (int i = 0; i < MAX_NUMS_BLOQUE_INODO && inodo->i_nbloque[i] != NULL_BLOQUE; i++)
+    {
+        printf("%.*s", SIZE_BLOQUE, memdatos[inodo->i_nbloque[i] - PRIM_BLOQUE_DATOS].dato);
+    }
+    printf("\n");
     return 0;
 }
