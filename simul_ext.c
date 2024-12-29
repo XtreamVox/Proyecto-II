@@ -107,10 +107,10 @@ int main()
         }
         else if (strcmp(orden, "copy") == 0)
         {
-            printf("Ingresa el nombre del archivo a donde se quiera copiar: ");
+            printf("Ingresa el nombre del archivo del que se quiera copiar: ");
             fgets(argumento1, LONGITUD_COMANDO, stdin);
             eliminarSaltoLinea(argumento1); // Eliminar el salto de línea
-            printf("Ingresa el nombre del archivo del que se quiere copiar: ");
+            printf("Ingresa el nombre del archivo a donde se quiera copiar: ");
             fgets(argumento2, LONGITUD_COMANDO, stdin);
             eliminarSaltoLinea(argumento2); // Eliminar el salto de línea
 
