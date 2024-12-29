@@ -64,11 +64,22 @@ int main()
 		 fflush(stdin);
 		 fgets(comando, LONGITUD_COMANDO, stdin);
 		 } while (ComprobarComando(comando,orden,argumento1,argumento2) !=0);
-	     if (strcmp(orden,"dir")==0) {
+
+         if (ComprobarComando(comando, orden, argumento1, argumento2) != 0){
+            printf("Comando desconocido\n");
+            continue;
+        }
+
+	     if (strcmp(orden,"dir")==0) 
+        {
             Directorio(&directorio,&ext_blq_inodos);
             continue;
-            }
-         ...
+        } 
+        else if (strcmp(orden, "bytemaps") == 0)
+        {
+            Printbytemaps(&ext_bytemaps);
+        } 
+         
          // Escritura de metadatos en comandos rename, remove, copy     
          Grabarinodosydirectorio(&directorio,&ext_blq_inodos,fent);
          GrabarByteMaps(&ext_bytemaps,fent);
@@ -137,4 +148,19 @@ void Directorio(EXT_ENTRADA_DIR *directorio, EXT_BLQ_INODOS *inodos)
             printf("\n");
         }
     }
+}
+
+void Printbytemaps(EXT_BYTE_MAPS *ext_bytemaps)
+{
+    printf("Bytemap de bloques:\n");
+    for (int i = 0; i < 25; i++)
+    {
+        printf("%d", ext_bytemaps->bmap_bloques[i]);
+    }
+    printf("\nBytemap de inodos:\n");
+    for (int i = 0; i < MAX_INODOS; i++)
+    {
+        printf("%d", ext_bytemaps->bmap_inodos[i]);
+    }
+    printf("\n");
 }
